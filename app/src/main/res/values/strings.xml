@@ -1,5 +1,150 @@
-<resources>
-    <string name="app_name">Mhrk</string>
-    <string name="rotor_title">محاكي دوار ثلاثي الطور</string>
-    <string name="rotor_status">الحالة: دوران مستمر</string>
-</resources>
+package com.mhrk.app
+
+import android.os.Bundle
+import android.widget.Button
+import android.widget.SeekBar
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
+
+class MainActivity : AppCompatActivity() {
+
+    private lateinit var rotorView: RotorView
+    private lateinit var speedSeekBar: SeekBar
+    private lateinit var amplitudeSeekBar: SeekBar
+    private lateinit var phaseSeekBar: SeekBar
+
+    private lateinit var speedValue: TextView
+    private lateinit var amplitudeValue: TextView
+    private lateinit var phaseValue: TextView
+    private lateinit var statusText: TextView
+    private lateinit var phaseAText: TextView
+    private lateinit var phaseBText: TextView
+    private lateinit var phaseCText: TextView
+    private lateinit var frequencyText: TextView
+    private lateinit var torqueText: TextView
+    private lateinit var voltageText: TextView
+    private lateinit var angleText: TextView
+    private lateinit var toggleButton: Button
+
+    private var isRunning = true
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        rotorView = findViewById(R.id.rotorView)
+        speedSeekBar = findViewById(R.id.speedSeekBar)
+        amplitudeSeekBar = findViewById(R.id.amplitudeSeekBar)
+        phaseSeekBar = findViewById(R.id.phaseSeekBar)
+
+        speedValue = findViewById(R.id.speedValue)
+        amplitudeValue = findViewById(R.id.amplitudeValue)
+        phaseValue = findViewById(R.id.phaseValue)
+        statusText = findViewById(R.id.statusText)
+        phaseAText = findViewById(R.id.phaseAText)
+        phaseBText = findViewById(R.id.phaseBText)
+        phaseCText = findViewById(R.id.phaseCText)
+        frequencyText = findViewById(R.id.frequencyText)
+        torqueText = findViewById(R.id.torqueText)
+        voltageText = findViewById(R.id.voltageText)
+        angleText = findViewById(R.id.angleText)
+        toggleButton = findViewById(R.id.toggleButton)
+
+        val resetButton: Button = findViewById(R.id.resetButton)
+
+        speedSeekBar.progress = 65
+        amplitudeSeekBar.progress = 80
+        phaseSeekBar.progress = 0
+
+        bindSpeedControls()
+        bindAmplitudeControls()
+        bindPhaseControls()
+
+        toggleButton.setOnClickListener {
+            isRunning = !isRunning
+            rotorView.setRunning(isRunning)
+            toggleButton.text = if (isRunning) getString(R.string.button_pause) else getString(R.string.button_play)
+            statusText.text = if (isRunning) getString(R.string.status_running) else getString(R.string.status_paused)
+        }
+
+        resetButton.setOnClickListener {
+            speedSeekBar.progress = 65
+            amplitudeSeekBar.progress = 80
+            phaseSeekBar.progress = 0
+            rotorView.resetState()
+            isRunning = true
+            rotorView.setRunning(true)
+            toggleButton.text = getString(R.string.button_pause)
+            statusText.text = getString(R.string.status_running)
+            updateMetrics(65, 80, 0)
+        }
+
+        updateMetrics(65, 80, 0)
+    }
+
+    private fun bindSpeedControls() {
+        speedSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, value: Int, fromUser: Boolean) {
+                val speed = value.toFloat()
+                rotorView.setSpeed(speed / 10f)
+                speedValue.text = "${value} RPM"
+                frequencyText.text = "${(value / 60f).toInt()} Hz"
+                updateMetrics(value, amplitudeSeekBar.progress, phaseSeekBar.progress)
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) = Unit
+            override fun onStopTrackingTouch(seekBar: SeekBar?) = Unit
+        })
+    }
+
+    private fun bindAmplitudeControls() {
+        amplitudeSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, value: Int, fromUser: Boolean) {
+                val amplitude = value / 100f
+                rotorView.setAmplitude(amplitude)
+                amplitudeValue.text = "${value}%"
+                torqueText.text = "${(value * 0.85f).toInt()}%"
+                voltageText.text = "${(value * 2.3f).toInt()}V"
+                updateMetrics(speedSeekBar.progress, value, phaseSeekBar.progress)
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) = Unit
+            override fun onStopTrackingTouch(seekBar: SeekBar?) = Unit
+        })
+    }
+
+    private fun bindPhaseControls() {
+        phaseSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, value: Int, fromUser: Boolean) {
+                rotorView.setPhaseOffset(value.toFloat())
+                phaseValue.text = "${value}°"
+                phaseAText.text = "${value}°"
+                phaseBText.text = "${(value + 120) % 360}°"
+                phaseCText.text = "${(value + 240) % 360}°"
+                angleText.text = "${value}°"
+                updateMetrics(speedSeekBar.progress, amplitudeSeekBar.progress, value)
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) = Unit
+            override fun onStopTrackingTouch(seekBar: SeekBar?) = Unit
+        })
+    }
+
+    private fun updateMetrics(speed: Int, amplitude: Int, phase: Int) {
+        val frequency = (speed / 60f).toInt()
+        val torque = (amplitude * 0.85f).toInt()
+        val voltage = (amplitude * 2.3f).toInt()
+
+        speedValue.text = "${speed} RPM"
+        amplitudeValue.text = "${amplitude}%"
+        phaseValue.text = "${phase}°"
+        phaseAText.text = "${phase}°"
+        phaseBText.text = "${(phase + 120) % 360}°"
+        phaseCText.text = "${(phase + 240) % 360}°"
+        frequencyText.text = "${frequency} Hz"
+        torqueText.text = "${torque}%"
+        voltageText.text = "${voltage}V"
+        angleText.text = "${phase}°"
+    }
+}
+
