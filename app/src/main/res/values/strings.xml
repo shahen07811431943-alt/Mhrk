@@ -1,289 +1,149 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#0B1220"
-    android:fillViewport="true">
+package com.mhrk.app
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="16dp">
+import android.os.Bundle
+import android.widget.Button
+import android.widget.SeekBar
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 
-        <TextView
-            android:id="@+id/titleText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginBottom="12dp"
-            android:text="@string/rotor_title"
-            android:textColor="#E2E8F0"
-            android:textSize="24sp"
-            android:textStyle="bold" />
+class MainActivity : AppCompatActivity() {
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:orientation="horizontal"
-            android:weightSum="3">
+    private lateinit var rotorView: RotorView
+    private lateinit var speedSeekBar: SeekBar
+    private lateinit var amplitudeSeekBar: SeekBar
+    private lateinit var phaseSeekBar: SeekBar
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_weight="1"
-                android:background="#111827"
-                android:orientation="vertical"
-                android:padding="10dp">
+    private lateinit var speedValue: TextView
+    private lateinit var amplitudeValue: TextView
+    private lateinit var phaseValue: TextView
+    private lateinit var statusText: TextView
+    private lateinit var phaseAText: TextView
+    private lateinit var phaseBText: TextView
+    private lateinit var phaseCText: TextView
+    private lateinit var frequencyText: TextView
+    private lateinit var torqueText: TextView
+    private lateinit var voltageText: TextView
+    private lateinit var angleText: TextView
+    private lateinit var toggleButton: Button
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="A"
-                    android:textColor="#F87171"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+    private var isRunning = true
 
-                <TextView
-                    android:id="@+id/phaseAText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="0°"
-                    android:textColor="#F8FAFC"
-                    android:textSize="16sp" />
-            </LinearLayout>
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_weight="1"
-                android:background="#111827"
-                android:orientation="vertical"
-                android:padding="10dp">
+        rotorView = findViewById(R.id.rotorView)
+        speedSeekBar = findViewById(R.id.speedSeekBar)
+        amplitudeSeekBar = findViewById(R.id.amplitudeSeekBar)
+        phaseSeekBar = findViewById(R.id.phaseSeekBar)
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="B"
-                    android:textColor="#4ADE80"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+        speedValue = findViewById(R.id.speedValue)
+        amplitudeValue = findViewById(R.id.amplitudeValue)
+        phaseValue = findViewById(R.id.phaseValue)
+        statusText = findViewById(R.id.statusText)
+        phaseAText = findViewById(R.id.phaseAText)
+        phaseBText = findViewById(R.id.phaseBText)
+        phaseCText = findViewById(R.id.phaseCText)
+        frequencyText = findViewById(R.id.frequencyText)
+        torqueText = findViewById(R.id.torqueText)
+        voltageText = findViewById(R.id.voltageText)
+        angleText = findViewById(R.id.angleText)
+        toggleButton = findViewById(R.id.toggleButton)
 
-                <TextView
-                    android:id="@+id/phaseBText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="120°"
-                    android:textColor="#F8FAFC"
-                    android:textSize="16sp" />
-            </LinearLayout>
+        val resetButton: Button = findViewById(R.id.resetButton)
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:background="#111827"
-                android:orientation="vertical"
-                android:padding="10dp">
+        speedSeekBar.progress = 65
+        amplitudeSeekBar.progress = 80
+        phaseSeekBar.progress = 0
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="C"
-                    android:textColor="#60A5FA"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+        bindSpeedControls()
+        bindAmplitudeControls()
+        bindPhaseControls()
 
-                <TextView
-                    android:id="@+id/phaseCText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="240°"
-                    android:textColor="#F8FAFC"
-                    android:textSize="16sp" />
-            </LinearLayout>
-        </LinearLayout>
+        toggleButton.setOnClickListener {
+            isRunning = !isRunning
+            rotorView.setRunning(isRunning)
+            toggleButton.text = if (isRunning) getString(R.string.button_pause) else getString(R.string.button_play)
+            statusText.text = if (isRunning) getString(R.string.status_running) else getString(R.string.status_paused)
+        }
 
-        <com.mhrk.app.RotorView
-            android:id="@+id/rotorView"
-            android:layout_width="match_parent"
-            android:layout_height="420dp"
-            android:layout_marginBottom="12dp" />
+        resetButton.setOnClickListener {
+            speedSeekBar.progress = 65
+            amplitudeSeekBar.progress = 80
+            phaseSeekBar.progress = 0
+            rotorView.resetState()
+            isRunning = true
+            rotorView.setRunning(true)
+            toggleButton.text = getString(R.string.button_pause)
+            statusText.text = getString(R.string.status_running)
+            updateMetrics(65, 80, 0)
+        }
 
-        <TextView
-            android:id="@+id/rotorDescription"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
-            android:background="#111827"
-            android:padding="12dp"
-            android:text="@string/rotor_description"
-            android:textColor="#93C5FD"
-            android:textSize="14sp" />
+        updateMetrics(65, 80, 0)
+    }
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="#111827"
-            android:orientation="vertical"
-            android:padding="12dp">
+    private fun bindSpeedControls() {
+        speedSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, value: Int, fromUser: Boolean) {
+                val speed = value.toFloat()
+                rotorView.setSpeed(speed / 10f)
+                speedValue.text = "${value} RPM"
+                frequencyText.text = "${(value / 60f).toInt()} Hz"
+                updateMetrics(value, amplitudeSeekBar.progress, phaseSeekBar.progress)
+            }
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/label_speed"
-                android:textColor="#E2E8F0"
-                android:textSize="14sp" />
+            override fun onStartTrackingTouch(seekBar: SeekBar?) = Unit
+            override fun onStopTrackingTouch(seekBar: SeekBar?) = Unit
+        })
+    }
 
-            <SeekBar
-                android:id="@+id/speedSeekBar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:max="100"
-                android:progress="65" />
+    private fun bindAmplitudeControls() {
+        amplitudeSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, value: Int, fromUser: Boolean) {
+                val amplitude = value / 100f
+                rotorView.setAmplitude(amplitude)
+                amplitudeValue.text = "${value}%"
+                torqueText.text = "${(value * 0.85f).toInt()}%"
+                voltageText.text = "${(value * 2.3f).toInt()}V"
+                updateMetrics(speedSeekBar.progress, value, phaseSeekBar.progress)
+            }
 
-            <TextView
-                android:id="@+id/speedValue"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="65 RPM"
-                android:textColor="#F8FAFC"
-                android:textSize="15sp" />
+            override fun onStartTrackingTouch(seekBar: SeekBar?) = Unit
+            override fun onStopTrackingTouch(seekBar: SeekBar?) = Unit
+        })
+    }
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/label_amplitude"
-                android:textColor="#E2E8F0"
-                android:textSize="14sp" />
+    private fun bindPhaseControls() {
+        phaseSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, value: Int, fromUser: Boolean) {
+                rotorView.setPhaseOffset(value.toFloat())
+                phaseValue.text = "${value}°"
+                phaseAText.text = "${value}°"
+                phaseBText.text = "${(value + 120) % 360}°"
+                phaseCText.text = "${(value + 240) % 360}°"
+                angleText.text = "${value}°"
+                updateMetrics(speedSeekBar.progress, amplitudeSeekBar.progress, value)
+            }
 
-            <SeekBar
-                android:id="@+id/amplitudeSeekBar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:max="100"
-                android:progress="80" />
+            override fun onStartTrackingTouch(seekBar: SeekBar?) = Unit
+            override fun onStopTrackingTouch(seekBar: SeekBar?) = Unit
+        })
+    }
 
-            <TextView
-                android:id="@+id/amplitudeValue"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="80%"
-                android:textColor="#F8FAFC"
-                android:textSize="15sp" />
+    private fun updateMetrics(speed: Int, amplitude: Int, phase: Int) {
+        val frequency = (speed / 60f).toInt()
+        val torque = (amplitude * 0.85f).toInt()
+        val voltage = (amplitude * 2.3f).toInt()
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/label_phase"
-                android:textColor="#E2E8F0"
-                android:textSize="14sp" />
-
-            <SeekBar
-                android:id="@+id/phaseSeekBar"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:max="360"
-                android:progress="0" />
-
-            <TextView
-                android:id="@+id/phaseValue"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="0°"
-                android:textColor="#F8FAFC"
-                android:textSize="15sp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/toggleButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_weight="1"
-                android:backgroundTint="#2563EB"
-                android:text="@string/button_pause" />
-
-            <Button
-                android:id="@+id/resetButton"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:backgroundTint="#475569"
-                android:text="@string/button_reset" />
-        </LinearLayout>
-
-        <TextView
-            android:id="@+id/statusText"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:background="#0F172A"
-            android:padding="12dp"
-            android:text="@string/status_running"
-            android:textColor="#93C5FD"
-            android:textSize="16sp" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:background="#111827"
-            android:orientation="horizontal"
-            android:padding="12dp"
-            android:weightSum="4">
-
-            <TextView
-                android:id="@+id/frequencyText"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="50 Hz"
-                android:textAlignment="center"
-                android:textColor="#F8FAFC"
-                android:textSize="14sp" />
-
-            <TextView
-                android:id="@+id/torqueText"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="92%"
-                android:textAlignment="center"
-                android:textColor="#F8FAFC"
-                android:textSize="14sp" />
-
-            <TextView
-                android:id="@+id/voltageText"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="230V"
-                android:textAlignment="center"
-                android:textColor="#F8FAFC"
-                android:textSize="14sp" />
-
-            <TextView
-                android:id="@+id/angleText"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="0°"
-                android:textAlignment="center"
-                android:textColor="#F8FAFC"
-                android:textSize="14sp" />
-        </LinearLayout>
-    </LinearLayout>
-</ScrollView>
+        speedValue.text = "${speed} RPM"
+        amplitudeValue.text = "${amplitude}%"
+        phaseValue.text = "${phase}°"
+        phaseAText.text = "${phase}°"
+        phaseBText.text = "${(phase + 120) % 360}°"
+        phaseCText.text = "${(phase + 240) % 360}°"
+        frequencyText.text = "${frequency} Hz"
+        torqueText.text = "${torque}%"
+        voltageText.text = "${voltage}V"
+        angleText.text = "${phase}°"
+    }
+}
