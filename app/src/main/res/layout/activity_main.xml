@@ -2,22 +2,33 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#0F172A"
     android:gravity="center"
     android:orientation="vertical"
-    android:padding="24dp">
+    android:padding="16dp">
 
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/titleText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/hello"
-        android:textSize="24sp" />
+        android:layout_marginBottom="12dp"
+        android:text="@string/rotor_title"
+        android:textColor="#E2E8F0"
+        android:textSize="24sp"
+        android:textStyle="bold" />
 
-    <Button
-        android:id="@+id/button"
+    <com.mhrk.app.RotorView
+        android:id="@+id/rotorView"
+        android:layout_width="match_parent"
+        android:layout_height="420dp" />
+
+    <TextView
+        android:id="@+id/statusText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="@string/click" />
+        android:layout_marginTop="12dp"
+        android:text="@string/rotor_status"
+        android:textColor="#93C5FD"
+        android:textSize="16sp" />
 
 </LinearLayout>

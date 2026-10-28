@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">Mhrk</string>
-    <string name="hello">مرحبًا في Mhrk</string>
-    <string name="click">اضغط هنا</string>
+    <string name="rotor_title">محاكي دوار ثلاثي الطور</string>
+    <string name="rotor_status">الحالة: دوران مستمر</string>
 </resources>
